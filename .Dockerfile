@@ -1,7 +1,7 @@
 FROM node:14.16.1-alpine3.13 as builder
 
 # Init
-RUN apk add --no-cache --virtual .gyp python make g++ bash
+RUN apk add --no-cache --virtual .gyp python3 make g++ bash
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --no-cache
