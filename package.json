@@ -1,6 +1,6 @@
 {
     "name": "priconne-resource-version-tracker",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Princess Connect Re:Dive resource version tracking and notification",
     "author": "TakumiPro",
     "license": "Apache2.0",
@@ -26,7 +26,8 @@
         "mongoose-lean-virtuals": "^0.8.0",
         "msgpack": "^1.0.3",
         "node-rdkafka": "^2.10.1",
-        "sha1": "^1.1.1"
+        "sha1": "^1.1.1",
+        "tslib": "^2.2.0"
     },
     "devDependencies": {
         "@types/jest": "^26.0.21",
