@@ -1,0 +1,4 @@
+export enum ConnectorType {
+  API_CONNECTOR = 'API_CONNECTOR',
+  GUESS_CONNECTOR = 'GUESS_CONNECTOR',
+}
