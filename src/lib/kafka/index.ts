@@ -95,7 +95,7 @@ versionEventProducer.on('ready', async () => {
       parseInt(config.app.kafka.topic.resVersionEvent.replication),
       {
         'cleanup.policy': 'delete',
-        'retention.ms': '0',
+        'retention.ms': '-1',
       },
     )
   } catch (error) {
