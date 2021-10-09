@@ -2,32 +2,27 @@ import * as dotenv from 'dotenv';
 import * as mongoose from 'mongoose';
 import { Message } from 'node-rdkafka';
 import { ApiServer } from './api-server';
-import { IScheduleCommand } from './model/ScheduleCommand';
 import * as config from './config';
 import { checkUpdateAPIConnector, checkUpdateGuessConnector, ICheckUpdateResult } from './domains/version/update';
 import { scheduleConsumer, schedulePollMessage, versionEventProducer, versionEventSendMessage } from './lib/kafka';
 import { ConnectorType } from './model/ConnectorType';
 import { IProfile, ProfileModel } from './model/profile';
 import { IResourceVersionEvent } from './model/ResourceVersionEvent';
-import { sleep } from './utils/common';
-import { writeLog } from './utils/logger';
+import { IScheduleCommand } from './model/ScheduleCommand';
+import { LogLevel, writeLog } from './utils/logger';
 
 dotenv.config();
 
 const start = async () => {
-  writeLog(`Starting up as namespace: ${config.app.namespace}`);
+  writeLog(LogLevel.INFO, 'startup', `${config.app.namespace}`);
   config.checkRequiredConfig();
 
   try {
     await scheduleConsumer.connect();
     await versionEventProducer.connect();
-    await mongoose.connect(config.app.mongo.uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology:true,
-      useCreateIndex: true,
-    });
+    await mongoose.connect(config.app.mongo.uri);
   } catch(error) {
-    writeLog(`[ERROR] Error occured while connect to store | Reason: ${error}`);
+    writeLog(LogLevel.ERROR, 'startup_error', `${error}`);
     await scheduleConsumer.disconnect();
     process.exit(1);
   }
@@ -49,9 +44,8 @@ const messageExecutor = async () => {
         scheduleConsumer.commit();
       }
     } catch (error) {
-      scheduleConsumer.commit();
-      writeLog(`[WARN] Message executor error occured | reason: ${error}`);
-      await sleep(1000);
+      writeLog(LogLevel.ERROR, 'consume_error', `${error}`);
+      process.exit(1);
     }
   }
 };
@@ -66,13 +60,13 @@ const checkForUpdate = async (message: Message) => {
       if(!command.profile) throw new Error("Profile name is empty");
       profile = command.profile;
     } catch (error) {
-      writeLog(`[WARN] CheckForUpdate skipped due to error | reason: ${error}`);
+      writeLog(LogLevel.ERROR, 'check_for_update_error', `${error}`);
       return resolve();
     }
 
     const filterdProfile: IProfile[] = await ProfileModel.find({name: profile});
     if(!filterdProfile.length) {
-      writeLog(`[WARN] CheckForUpdate skipped due to error | reason: profile ${profile} not found`);
+      writeLog(LogLevel.ERROR, 'check_for_update_error', `profile ${profile} not found`);
       return resolve();
     }
 
@@ -89,14 +83,19 @@ const checkForUpdate = async (message: Message) => {
           checkUpdateResult = await checkUpdateGuessConnector(resultProfile.settings);
           break;
         default:
-          writeLog(`[WARN] CheckForUpdate skipped due to error | reason: unknow profile type '${resultProfile.type}'`);
+          writeLog(LogLevel.ERROR, 'check_for_update_error', `profile type ${resultProfile.type} not found`);
           return resolve();
       }
 
 
       //Do something
       if(checkUpdateResult.isUpdated) {
-        writeLog(`New version for '${resultProfile.name}' is '${checkUpdateResult.resVersion}'`);
+        writeLog(LogLevel.INFO, 'new_version', {
+          profile: {
+            name: resultProfile.name,
+            version: checkUpdateResult.resVersion
+          }
+        });
 
         const updateInfo: IResourceVersionEvent = {
           appId: checkUpdateResult.appId,
@@ -112,7 +111,7 @@ const checkForUpdate = async (message: Message) => {
         );
 
       } else {
-        writeLog(`No new version for '${resultProfile.name}'`);
+        writeLog(LogLevel.INFO, 'check_for_update',`No new version for ${resultProfile.name}`);
       }
 
     } catch (error) {

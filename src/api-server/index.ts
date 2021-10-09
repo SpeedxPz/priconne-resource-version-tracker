@@ -3,7 +3,7 @@ import * as koa from 'koa'
 import * as koaBodyParser from 'koa-bodyparser'
 import * as koaCompress from 'koa-compress'
 import * as koaRouter from 'koa-router'
-import { writeLog } from '../utils/logger'
+import { LogLevel, writeLog } from '../utils/logger'
 import errorHandler from './middleware/errorHandler'
 import notfoundHandler from './middleware/notfoundHandler'
 import responseHandler from './middleware/responseHandler'
@@ -43,7 +43,7 @@ export class ApiServer {
 
   start = () => {
     this.engine.listen(this.port, '0.0.0.0', () => {
-      writeLog(`The API Server start listening at ${this.port}`);
+      writeLog(LogLevel.INFO, `apis_start`, `The API Server start listening at ${this.port}`);
     });
   }
 

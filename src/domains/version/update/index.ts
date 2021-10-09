@@ -9,7 +9,6 @@ import * as AppVersionService from '../../../repository/appversion';
 import { sleep } from '../../../utils/common';
 
 
-
 const getOrCreateResVersion = async (appId: string, serverCode: string) : Promise<IVersion> => {
   return new Promise(async (resolve: Function, _1: Function) => {
     const versions: IVersion[] = await VersionModel.find({appId: appId, serverCode: serverCode});

@@ -1,6 +1,6 @@
 import { AdminClient, KafkaConsumer, LibrdKafkaError, Message, Producer } from 'node-rdkafka';
 import * as config from '../../config';
-import { writeLog } from '../../utils/logger';
+import { LogLevel, writeLog } from '../../utils/logger';
 
 
 export const adminClient = AdminClient.create({
@@ -57,7 +57,7 @@ export const createTopic = (
 
 scheduleConsumer.setDefaultConsumeLoopTimeoutDelay(5);
 scheduleConsumer.on('ready', async () => {
-  writeLog("Kafka consumer is in ready state");
+  writeLog(LogLevel.INFO, 'event_consumer', `Producer is ready`);
   try {
     await createTopic(
       config.app.kafka.topic.schedule.name,
@@ -66,9 +66,7 @@ scheduleConsumer.on('ready', async () => {
         'cleanup.policy': 'compact'
       },
     )
-  } catch (error) {
-    writeLog(`[WARN] cannot create topic ${config.app.kafka.topic.schedule.name} | reason: ${error}`);
-  } finally {
+  } catch (error) {} finally {
     scheduleConsumer.subscribe([config.app.kafka.topic.schedule.name]);
   }
 });
@@ -88,7 +86,7 @@ export const schedulePollMessage = () : Promise<Message[]> =>
 
 versionEventProducer.setPollInterval(100);
 versionEventProducer.on('ready', async () => {
-  writeLog("Kafka producer is in ready state");
+  writeLog(LogLevel.INFO, 'version_producer_startup', `Producer is ready`);
   try {
     await createTopic(
       config.app.kafka.topic.resVersionEvent.name,
@@ -98,9 +96,7 @@ versionEventProducer.on('ready', async () => {
         'retention.ms': '-1',
       },
     )
-  } catch (error) {
-    writeLog(`[WARN] cannot create topic ${config.app.kafka.topic.resVersionEvent.name} | reason: ${error}`);
-  }
+  } catch (error) {}
 });
 
 export const versionEventSendMessage = (
