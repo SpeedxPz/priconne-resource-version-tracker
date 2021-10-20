@@ -121,6 +121,11 @@ const checkForUpdate = async (message: Message) => {
   });
 }
 
+process.on('uncaughtException', function (err) {
+  writeLog(LogLevel.ERROR, 'uncaught_exception', `${err}`);
+  process.exit(1)
+})
+
 
 
 start();
