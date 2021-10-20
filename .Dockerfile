@@ -1,4 +1,4 @@
-FROM node:14.16.1-alpine3.13 as builder
+FROM node:16.10-alpine3.13 as builder
 
 # Init
 RUN apk add --no-cache --virtual .gyp python3 make g++ bash
@@ -16,7 +16,7 @@ RUN rm -rf ./false
 RUN rm -rf ./node_modules/node-rdkafka/.vscode
 # RUN apk del .gyp python make g++ bash
 
-FROM node:14.16.1-alpine3.13
+FROM node:16.10-alpine3.13
 
 WORKDIR /usr/src/app
 # RUN apk add --no-cache gcompat
